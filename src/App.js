@@ -1,26 +1,60 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import axios from "axios";
+import "./App.css";
+import Post from "./Post";
+import Pagination from "./Pagination";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+  state = {
+    posts: [],
+    loading: true,
+    currentPage: 1,
+    postPerPage: 10,
+  };
+  componentDidMount() {
+    const fetchPosts = async () => {
+      const res = await axios
+        .get(`https://jsonplaceholder.typicode.com/posts`)
+        .then((res) => res.data);
+
+      const { currentPage, postPerPage } = this.state;
+      const indexOfLastPost = currentPage * postPerPage;
+      const indexOfFirstPost = indexOfLastPost - postPerPage;
+
+      this.setState({
+        curPosts: res.slice(indexOfFirstPost, indexOfLastPost),
+        loading: false,
+        posts: res,
+      });
+    };
+    fetchPosts();
+  }
+
+  paginate = (pageNumber) => {
+    this.setState(
+      {
+        currentPage: pageNumber,
+      },
+      () => {
+        console.log(this.state.currentPage);
+      }
+    );
+  };
+
+  render() {
+    const { posts, loading } = this.state;
+    return (
+      <div className="App">
+        <h1>List of Posts</h1>
+        <Post posts={posts} loading={loading} />
+        <Pagination
+          postsPerPage={this.state.postPerPage}
+          totalPosts={posts.length}
+          paginate={this.paginate}
+        />
+      </div>
+    );
+  }
 }
 
 export default App;
